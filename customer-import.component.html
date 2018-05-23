@@ -1,0 +1,59 @@
+<ol class="breadcrumb">
+  <li><a (click)="goToCampaignSummary()">{{campaign.name}}</a></li>
+  <li class="active">Customer Import</li>
+</ol>
+
+<h3>
+  <span class="label import-status"
+        [ngClass]="{
+          'label-info': isOperationPending,
+          'label-success': isOperationProcessing,
+          'label-default': isOperationCompleted,
+          'label-danger': isOperationFailed || isOperationCancelled
+        }">{{latestImportOperation?.status?.name}}</span>
+  Customer Import
+</h3>
+
+<section class="row" id="import-summary" *ngIf="latestImportOperation">
+  <div class="col-xs-12 col-md-6">
+    <div class="panel panel-success import-summary-customers" (click)="openOperationDetails()">
+      <div class="panel-heading">Customers Imported</div>
+      <div class="panel-body text-center">
+        <p>{{latestImportOperation.successfulRecords | number}}</p>
+        <p><small>Customers Imported</small></p>
+        <p><small>{{latestImportOperation.uploadEndTime | date}}</small></p>
+        <p><small>{{employee?.firstName}} {{employee?.lastName}} <{{employee?.email}}></small></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xs-12 col-md-6">
+    <div class="panel panel-danger import-summary-errors" (click)="openOperationDetails()">
+      <div class="panel-heading bg-danger">Validation Errors</div>
+      <div class="panel-body text-center">
+        <p>{{(latestImportOperation.skippedRecords + latestImportOperation.failedRecords) | number}}</p>
+        <p><small>Errors</small></p>
+        <p><small>{{latestImportOperation.totalWarnings}}</small></p>
+        <p><small>Warnings</small></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<p class="text-warning bg-warning" *ngIf="!campaign?.status?.isDraft() && !campaign?.status?.isPaused()">
+  Your campaign is currently {{campaign?.status?.name}}. Customers can only be uploaded to a campaign that
+  is being drafted or paused.</p>
+
+<app-customer-import-uploader [campaignId]="campaignId"
+                              [fid]="fid"
+                              [isUploadEnabled]="campaign?.status?.isDraft() || campaign?.status?.isPaused()"
+                              (onCustomerFileUploadStarted)="onCustomerFileUploadStarted()"
+                              (onCustomerFileUploadCompleted)="onCustomerFileUploadCompleted()"
+                              (onImportOperationProcessingComplete)="onImportOperationProcessingComplete($event)"
+                              (onCustomerFileUploadFailed)="onCustomerFileUploadFailed()"
+                              (onCustomerFileProcessingRequestTimedOut)="onCustomerFileProcessingRequestTimedOut()"
+                              (onImportOperationCreated)="onImportOperationCreated()">
+
+</app-customer-import-uploader>
+
+<app-transition-indicator [isShown]="isUploadInProgress" [message]="'Uploading file...'"></app-transition-indicator>
